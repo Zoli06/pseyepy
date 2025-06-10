@@ -15,7 +15,7 @@ if sys.platform in ('darwin','linux','linux2'):
     subprocess.call('tar -jxf libusb-1.0.21.tar.bz2', cwd=wd, shell=True)
 
     wd = os.path.join('.','pseyepy','ext','libusb-1.0.21')
-    subprocess.call('sudo ./configure --prefix={}'.format(python_data_path), cwd=wd, shell=True)
+    subprocess.call('sudo ./configure --prefix={} CFLAGS="-fPIC" CXXFLAGS="-fPIC"'.format(python_data_path), cwd=wd, shell=True)
     subprocess.call('make clean', cwd=wd, shell=True)
     subprocess.call('sudo make', cwd=wd, shell=True)
     subprocess.call('sudo make install', cwd=wd, shell=True)
@@ -52,17 +52,26 @@ elif sys.platform.startswith('win'):
     libs = ['libusb-1.0']
 
 ### setup params
-os.environ["CC"]= "g++"
+os.environ["CC"] = "g++"
+os.environ["CXX"] = "g++"
+
 srcs = ['pseyepy/src/ps3eye.cpp','pseyepy/src/ps3eye_capi.cpp','pseyepy/cameras.pyx']
-extensions = [  Extension('pseyepy.cameras',
-                srcs, 
-                language='c++',
-                extra_compile_args=['-std=c++11'],
-                extra_link_args=['-std=c++11'],
-                include_dirs=['pseyepy/src']+libusb_incl,
-                library_dirs=[libusb_libpath],
-                libraries=libs,
-            )]
+
+if isinstance(libusb_libpath, str):
+    libusb_libpath = [libusb_libpath]
+
+extensions = [
+    Extension('pseyepy.cameras',
+        srcs,
+        language='c++',
+        extra_compile_args=['-std=c++11', '-fPIC'],
+        extra_link_args=['-std=c++11', '-shared'],
+        include_dirs=['pseyepy/src'] + libusb_incl,
+        library_dirs=libusb_libpath,
+        libraries=libs,
+    )
+]
+
 
 ### run setup
 setup(  name='pseyepy',
@@ -74,3 +83,5 @@ setup(  name='pseyepy',
         packages=['pseyepy'],
         package_data={'pseyepy': ['cameras.pyx']},
         ext_modules=cythonize(extensions),)
+
+print("done")
