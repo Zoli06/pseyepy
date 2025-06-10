@@ -34,7 +34,7 @@ if sys.platform in ('darwin','linux','linux2'):
 
     libusb_incl = ['pseyepy/ext/include/libusb-1.0']
     libusb_libpath = 'pseyepy/ext/lib'
-    libs = ['usb-1.0']
+    libs = ['usb-1.0', 'udev']
 
 elif sys.platform.startswith('win'):
     # precompiled library from:
